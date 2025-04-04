@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACM Events Admin Panel</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    .card {
+      transition: all 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .event-image {
+      height: 150px;
+      object-fit: cover;
+    }
+    .icon-preview {
+      font-size: 1.5rem;
+      color: #40c0da;
+      margin-left: 10px;
+    }
+    .image-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .image-preview-item {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .image-preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .image-preview-item .remove-image {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      color: #dc3545;
+    }
+    .image-preview-item .remove-image:hover {
+      background: rgba(255, 255, 255, 0.9);
+    }
+    .image-gallery-container {
+      position: relative;
+      overflow: hidden;
+      border-radius: 4px;
+    }
+    .image-gallery {
+      display: flex;
+      transition: transform 0.3s ease;
+    }
+    .image-gallery img {
+      min-width: 100%;
+      height: 150px;
+      object-fit: cover;
+    }
+    .gallery-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .gallery-prev {
+      left: 5px;
+    }
+    .gallery-next {
+      right: 5px;
+    }
+    .gallery-indicators {
+      position: absolute;
+      bottom: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 4px;
+    }
+    .gallery-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.5);
+      cursor: pointer;
+    }
+    .gallery-indicator.active {
+      background: white;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="#">ACM Events Admin</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/"><i class="fas fa-home"></i> View Site</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mt-4">
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Add New Event</h5>
+          </div>
+          <div class="card-body">
+            <form id="eventForm" enctype="multipart/form-data">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="title" class="form-label">Event Title</label>
+                  <input type="text" class="form-control" id="title" name="title" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="type" class="form-label">Event Type</label>
+                  <div class="input-group">
+                    <select class="form-select" id="type" name="type" required onchange="updateIconPreview()">
+                      <option value="">Select Type</option>
+                      <option value="workshop">Workshop</option>
+                      <option value="hackathon">Hackathon</option>
+                      <option value="tedtalk">TED Talk</option>
+                      <option value="meeting">Meeting</option>
+                      <option value="orientation">Orientation</option>
+                      <option value="other">Other</option>
+                    </select>
+                    <span class="input-group-text">
+                      <i id="iconPreview" class="fas fa-calendar-day"></i>
+                    </span>
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="startDate" class="form-label">Start Date</label>
+                  <input type="date" class="form-control" id="startDate" name="startDate" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="endDate" class="form-label">End Date (Optional)</label>
+                  <input type="date" class="form-control" id="endDate" name="endDate">
+                </div>
+                <div class="col-md-12 mb-3">
+                  <label for="description" class="form-label">Description</label>
+                  <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                </div>
+                <div class="col-md-12 mb-3">
+                  <label class="form-label">Event Images (Up to 5)</label>
+                  <div class="input-group">
+                    <input type="file" class="form-control" id="images" name="images" accept="image/*" multiple onchange="previewImages(this, 'imagePreviewContainer')">
+                    <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('images').click()">
+                      <i class="fas fa-images"></i> Select Images
+                    </button>
+                  </div>
+                  <small class="text-muted">Select up to 5 images. First image will be used as the main thumbnail.</small>
+                  <div id="imagePreviewContainer" class="image-preview"></div>
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus-circle"></i> Add Event
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">Manage Events</h5>
+          </div>
+          <div class="card-body">
+            <div id="eventsList" class="row g-4">
+              <!-- Events will be loaded here -->
+              <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Event Modal -->
+  <div class="modal fade" id="editEventModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Event</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="editEventForm" enctype="multipart/form-data">
+            <input type="hidden" id="editEventId">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="editTitle" class="form-label">Event Title</label>
+                <input type="text" class="form-control" id="editTitle" name="title" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="editType" class="form-label">Event Type</label>
+                <div class="input-group">
+                  <select class="form-select" id="editType" name="type" required onchange="updateEditIconPreview()">
+                    <option value="">Select Type</option>
+                    <option value="workshop">Workshop</option>
+                    <option value="hackathon">Hackathon</option>
+                    <option value="tedtalk">TED Talk</option>
+                    <option value="meeting">Meeting</option>
+                    <option value="orientation">Orientation</option>
+                    <option value="other">Other</option>
+                  </select>
+                  <span class="input-group-text">
+                    <i id="editIconPreview" class="fas fa-calendar-day"></i>
+                  </span>
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="editStartDate" class="form-label">Start Date</label>
+                <input type="date" class="form-control" id="editStartDate" name="startDate" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="editEndDate" class="form-label">End Date (Optional)</label>
+                <input type="date" class="form-control" id="editEndDate" name="endDate">
+              </div>
+              <div class="col-md-12 mb-3">
+                <label for="editDescription" class="form-label">Description</label>
+                <textarea class="form-control" id="editDescription" name="description" rows="3" required></textarea>
+              </div>
+              <div class="col-md-12 mb-3">
+                <label class="form-label">Event Images</label>
+                <div class="input-group">
+                  <input type="file" class="form-control" id="editImages" name="images" accept="image/*" multiple onchange="previewImages(this, 'editImagePreviewContainer')">
+                  <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('editImages').click()">
+                    <i class="fas fa-images"></i> Add Images
+                  </button>
+                </div>
+                <small class="text-muted">You can add up to 5 images total.</small>
+                <div id="editImagePreviewContainer" class="image-preview"></div>
+                <div id="currentImagesContainer" class="mt-3">
+                  <h6>Current Images:</h6>
+                  <div id="currentImages" class="image-preview"></div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="saveEventChanges">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Track selected files for new and edited events
+    let selectedNewImages = [];
+    let selectedEditImages = [];
+    let currentEventImages = [];
+    let imagesToRemove = [];
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      fetchEvents();
+      
+      // Event Form Submission
+      document.getElementById('eventForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        // Replace the single image with multiple images
+        formData.delete('images');
+        selectedNewImages.forEach(file => {
+          formData.append('images', file);
+        });
+        
+        fetch('/api/events', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert('Event added successfully!');
+          this.reset();
+          selectedNewImages = [];
+          document.getElementById('imagePreviewContainer').innerHTML = '';
+          fetchEvents();
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Failed to add event. Please try again.');
+        });
+      });
+      
+      // Save edited event
+      document.getElementById('saveEventChanges').addEventListener('click', function() {
+        const eventId = document.getElementById('editEventId').value;
+        const formData = new FormData(document.getElementById('editEventForm'));
+        
+        // Remove the default images input and add our tracked files
+        formData.delete('images');
+        selectedEditImages.forEach(file => {
+          formData.append('newImages', file);
+        });
+        
+        // Add list of images to remove
+        if (imagesToRemove.length > 0) {
+          formData.append('imagesToRemove', JSON.stringify(imagesToRemove));
+        }
+        
+        fetch(`/api/events/${eventId}`, {
+          method: 'PUT',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert('Event updated successfully!');
+          const modal = bootstrap.Modal.getInstance(document.getElementById('editEventModal'));
+          modal.hide();
+          // Reset tracking arrays
+          selectedEditImages = [];
+          currentEventImages = [];
+          imagesToRemove = [];
+          fetchEvents();
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Failed to update event. Please try again.');
+        });
+      });
+    });
+    
+    function previewImages(input, containerId) {
+      const container = document.getElementById(containerId);
+      const isEdit = containerId === 'editImagePreviewContainer';
+      const maxImages = 5;
+      
+      // Check if we're adding too many images
+      const currentCount = isEdit 
+        ? selectedEditImages.length + currentEventImages.length - imagesToRemove.length 
+        : selectedNewImages.length;
+      
+      const filesArray = Array.from(input.files);
+      const allowedNewFiles = filesArray.slice(0, maxImages - currentCount);
+      
+      if (filesArray.length > allowedNewFiles.length) {
+        alert(`You can only upload up to ${maxImages} images total. Only the first ${allowedNewFiles.length} selected files will be added.`);
+      }
+      
+      // Store the new files in the appropriate array
+      if (isEdit) {
+        selectedEditImages = [...selectedEditImages, ...allowedNewFiles];
+      } else {
+        selectedNewImages = [...selectedNewImages, ...allowedNewFiles];
+      }
+      
+      // Clear the container first
+      container.innerHTML = '';
+      
+      // Add preview for each selected file
+      const filesToPreview = isEdit ? selectedEditImages : selectedNewImages;
+      
+      filesToPreview.forEach((file, index) => {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          const previewItem = document.createElement('div');
+          previewItem.className = 'image-preview-item';
+          
+          previewItem.innerHTML = `
+            <img src="${e.target.result}" alt="Image preview">
+            <div class="remove-image" onclick="removeSelectedImage(${index}, '${isEdit ? 'edit' : 'new'}')">
+              <i class="fas fa-times"></i>
+            </div>
+          `;
+          
+          container.appendChild(previewItem);
+        };
+        
+        reader.readAsDataURL(file);
+      });
+      
+      // Clear the file input
+      input.value = '';
+    }
+    
+    function removeSelectedImage(index, type) {
+      if (type === 'edit') {
+        selectedEditImages.splice(index, 1);
+        previewSelectedImages('editImagePreviewContainer', selectedEditImages);
+      } else {
+        selectedNewImages.splice(index, 1);
+        previewSelectedImages('imagePreviewContainer', selectedNewImages);
+      }
+    }
+    
+    function previewSelectedImages(containerId, imagesArray) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      
+      imagesArray.forEach((file, index) => {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          const previewItem = document.createElement('div');
+          previewItem.className = 'image-preview-item';
+          
+          previewItem.innerHTML = `
+            <img src="${e.target.result}" alt="Image preview">
+            <div class="remove-image" onclick="removeSelectedImage(${index}, '${containerId === 'editImagePreviewContainer' ? 'edit' : 'new'}')">
+              <i class="fas fa-times"></i>
+            </div>
+          `;
+          
+          container.appendChild(previewItem);
+        };
+        
+        reader.readAsDataURL(file);
+      });
+    }
+    
+    function removeCurrentImage(imageUrl) {
+      imagesToRemove.push(imageUrl);
+      
+      // Update the current images display
+      displayCurrentImages(currentEventImages);
+    }
+    
+    function displayCurrentImages(images) {
+      const container = document.getElementById('currentImages');
+      container.innerHTML = '';
+      
+      // Filter out images that are marked for removal
+      const filteredImages = images.filter(img => !imagesToRemove.includes(img));
+      
+      if (filteredImages.length === 0) {
+        container.innerHTML = '<p class="text-muted">No current images</p>';
+        return;
+      }
+      
+      filteredImages.forEach((imageUrl, index) => {
+        const previewItem = document.createElement('div');
+        previewItem.className = 'image-preview-item';
+        
+        previewItem.innerHTML = `
+          <img src="${imageUrl}" alt="Current image">
+          <div class="remove-image" onclick="removeCurrentImage('${imageUrl}')">
+            <i class="fas fa-times"></i>
+          </div>
+        `;
+        
+        container.appendChild(previewItem);
+      });
+    }
+    
+    function fetchEvents() {
+      fetch('/api/events')
+        .then(response => response.json())
+        .then(events => {
+          renderEvents(events);
+        })
+        .catch(error => {
+          console.error('Error fetching events:', error);
+          document.getElementById('eventsList').innerHTML = '<div class="col-12 text-center">Failed to load events. Please refresh the page.</div>';
+        });
+    }
+    
+    function renderEvents(events) {
+      const eventsContainer = document.getElementById('eventsList');
+      
+      if (events.length === 0) {
+        eventsContainer.innerHTML = '<div class="col-12 text-center py-4">No events found. Add your first event above!</div>';
+        return;
+      }
+      
+      let html = '';
+      events.forEach(event => {
+        const iconClass = getIconClass(event.type);
+        const formattedStartDate = formatDate(event.startDate);
+        const formattedEndDate = event.endDate ? formatDate(event.endDate) : '';
+        
+        // Determine whether to show single image or gallery
+        let imageHTML = '';
+        if (event.images && event.images.length > 1) {
+          // Create an image gallery with navigation
+          imageHTML = createGalleryHTML(event.images, event._id);
+        } else if (event.images && event.images.length === 1) {
+          // Show single image
+          imageHTML = `<img src="${event.images[0]}" class="card-img-top event-image" alt="${event.title}">`;
+        } else if (event.imageUrl) {
+          // Fallback for legacy data
+          imageHTML = `<img src="${event.imageUrl}" class="card-img-top event-image" alt="${event.title}">`;
+        } else {
+          // No image placeholder
+          imageHTML = `<div class="card-img-top event-image bg-light d-flex align-items-center justify-content-center">
+                         <i class="${iconClass}" style="font-size: 3rem; color: #ccc;"></i>
+                       </div>`;
+        }
+        
+        html += `
+          <div class="col-md-4">
+            <div class="card h-100">
+              <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <span><i class="${iconClass}" style="color: #40c0da;"></i> ${capitalizeFirstLetter(event.type)}</span>
+                <div>
+                  <button class="btn btn-sm btn-primary" onclick="editEvent('${event._id}')">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn btn-sm btn-danger" onclick="deleteEvent('${event._id}')">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+              ${imageHTML}
+              <div class="card-body">
+                <h5 class="card-title">${event.title}</h5>
+                <p class="card-text text-muted">
+                  <i class="fas fa-calendar"></i> ${formattedStartDate}
+                  ${formattedEndDate ? `- ${formattedEndDate}` : ''}
+                </p>
+                <p class="card-text">${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+      eventsContainer.innerHTML = html;
+      
+      // Initialize galleries after rendering
+      initializeGalleries();
+    }
+    
+    function createGalleryHTML(images, eventId) {
+      const indicators = images.map((_, i) => 
+        `<div class="gallery-indicator ${i === 0 ? 'active' : ''}" data-index="${i}"></div>`
+      ).join('');
+      
+      return `
+        <div class="image-gallery-container" data-event-id="${eventId}">
+          <div class="image-gallery">
+            ${images.map(img => `<img src="${img}" alt="Event image">`).join('')}
+          </div>
+          <button class="gallery-nav gallery-prev">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button class="gallery-nav gallery-next">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+          <div class="gallery-indicators">
+            ${indicators}
+          </div>
+        </div>
+      `;
+    }
+    
+    function initializeGalleries() {
+      const galleries = document.querySelectorAll('.image-gallery-container');
+      
+      galleries.forEach(gallery => {
+        const container = gallery.querySelector('.image-gallery');
+        const prevBtn = gallery.querySelector('.gallery-prev');
+        const nextBtn = gallery.querySelector('.gallery-next');
+        const indicators = gallery.querySelectorAll('.gallery-indicator');
+        const imageCount = gallery.querySelectorAll('img').length;
+        let currentIndex = 0;
+        
+        // Navigation buttons
+        prevBtn.addEventListener('click', () => {
+          currentIndex = (currentIndex - 1 + imageCount) % imageCount;
+          updateGallery();
+        });
+        
+        nextBtn.addEventListener('click', () => {
+          currentIndex = (currentIndex + 1) % imageCount;
+          updateGallery();
+        });
+        
+        // Indicator dots
+        indicators.forEach((dot, i) => {
+          dot.addEventListener('click', () => {
+            currentIndex = i;
+            updateGallery();
+          });
+        });
+        
+        function updateGallery() {
+          container.style.transform = `translateX(-${currentIndex * 100}%)`;
+          
+          indicators.forEach((dot, i) => {
+            dot.classList.toggle('active', i === currentIndex);
+          });
+        }
+      });
+    }
+    
+    function editEvent(id) {
+      // Reset tracking arrays
+      selectedEditImages = [];
+      imagesToRemove = [];
+      
+      fetch(`/api/events/${id}`)
+        .then(response => response.json())
+        .then(event => {
+          document.getElementById('editEventId').value = event._id;
+          document.getElementById('editTitle').value = event.title;
+          document.getElementById('editType').value = event.type;
+          document.getElementById('editStartDate').value = formatDateForInput(event.startDate);
+          document.getElementById('editEndDate').value = event.endDate ? formatDateForInput(event.endDate) : '';
+          document.getElementById('editDescription').value = event.description;
+          
+          // Handle multiple images
+          currentEventImages = [];
+          
+          if (event.images && event.images.length > 0) {
+            currentEventImages = [...event.images];
+          } else if (event.imageUrl) {
+            // Legacy support for single image
+            currentEventImages = [event.imageUrl];
+          }
+          
+          // Display current images
+          displayCurrentImages(currentEventImages);
+          
+          // Clear new image selection
+          document.getElementById('editImagePreviewContainer').innerHTML = '';
+          
+          updateEditIconPreview();
+          
+          const modal = new bootstrap.Modal(document.getElementById('editEventModal'));
+          modal.show();
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Failed to load event details. Please try again.');
+        });
+    }
+    
+    function deleteEvent(id) {
+      if (confirm('Are you sure you want to delete this event?')) {
+        fetch(`/api/events/${id}`, {
+          method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert('Event deleted successfully!');
+          fetchEvents();
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Failed to delete event. Please try again.');
+        });
+      }
+    }
+    
+    function getIconClass(eventType) {
+      const icons = {
+        'workshop': 'fas fa-laptop-code',
+        'hackathon': 'fas fa-code',
+        'tedtalk': 'fas fa-microphone',
+        'meeting': 'fas fa-users',
+        'orientation': 'fas fa-compass',
+        'default': 'fas fa-calendar-day'
+      };
+      
+      return icons[eventType?.toLowerCase()] || icons.default;
+    }
+    
+    function updateIconPreview() {
+      const typeSelect = document.getElementById('type');
+      const iconPreview = document.getElementById('iconPreview');
+      
+      iconPreview.className = getIconClass(typeSelect.value);
+    }
+    
+    function updateEditIconPreview() {
+      const typeSelect = document.getElementById('editType');
+      const iconPreview = document.getElementById('editIconPreview');
+      
+      iconPreview.className = getIconClass(typeSelect.value);
+    }
+    
+    function formatDate(dateString) {
+      const options = { year: 'numeric', month: 'short', day: 'numeric' };
+      return new Date(dateString).toLocaleDateString('en-US', options);
+    }
+    
+    function formatDateForInput(dateString) {
+      return new Date(dateString).toISOString().split('T')[0];
+    }
+    
+    function capitalizeFirstLetter(string) {
+      return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+  </script>
+</body>
+</html>
