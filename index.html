@@ -787,22 +787,51 @@ function revealTimelineItems() {
 // Sample events for demo purposes (will be replaced by actual data from API)
 function renderSampleEvents() {
   const sampleEvents = [
-    {
-      title: 'Annual Hackathon',
-      type: 'hackathon',
-      startDate: '2023-10-15',
-      endDate: '2023-10-16',
-      description: 'A 24-hour coding marathon where students collaborated to solve real-world problems.',
+   {
+      title: 'Orientation',
+      type: 'Orientation',
+      startDate: '2025-02-14',
+      endDate: '2025-02-14',
+      description: 'Inauguration ceremony ',
       images: [
-        '/api/placeholder/400/200',
-        '/api/placeholder/400/200?text=Coding+Session',
-        '/api/placeholder/400/200?text=Team+Presentations',
-        '/api/placeholder/400/200?text=Award+Ceremony',
-        '/api/placeholder/400/200?text=Winners'
+        'public/uploads/1743785816728.jpg',
+        'public/uploads/1743785816738.jpg',
+        'public/uploads/1743785816743.jpg',
+        'public/uploads/1743785816744.jpg'
+       
       ]
     },
+    {
+      title: 'Project Propel-Mentorship',
+      type: 'meeting',
+      startDate: '2025-03-10',
+      endDate: '2025-03-11',
+      description: 'Projects finding difficulties were mentored by the students whose skills were compatibale to help their peers ',
+      images: [
+        'public/uploads/IMG-20250401-WA0074.jpg',
+        'public/uploads/IMG-20250401-WA0084.jpg',
+        'public/uploads/IMG-20250401-WA0021.jpg'
+        
+       
+      ]
+    },
+    {
+      title: 'Guest Lecture ',
+      type: 'Ted talk',
+      startDate: '2025-02-14',
+      endDate: '2025-02-14',
+      description: 'Divyansh Pareek sir shared his experience with the students ',
+      images: [
+        'public/uploads/IMG-20250328-WA0041.jpg',
+        'public/uploads/IMG-20250328-WA0040.jpg',
+        'public/uploads/IMG-20250328-WA0035.jpg'
+        
+       
+      ]
+    }
     // Other sample events...
   ];
+  
   
   renderEvents(sampleEvents);
 }
